@@ -1,28 +1,38 @@
 package com.kelompokempat.simbar.security;
 
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct; // Import PostConstruct dari jakarta
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.util.function.Function;
-
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 @Component
 public class JwtTokenUtil {
-    // Inject dari application.properties
+
+    // 1. Inject nilai dari properties ke dalam String
     @Value("${jwt.secret}")
-    private String secret;
+    private String secretString;
 
     @Value("${jwt.expiration}")
     private int jwtExpiration;
 
+    // 2. Siapkan variabel untuk menampung objek SecretKey
+    private SecretKey secretKey;
+
+    // 3. Gunakan @PostConstruct untuk mengonversi String menjadi SecretKey setelah dependency injection selesai
+    @PostConstruct
+    public void init() {
+        this.secretKey = Keys.hmacShaKeyFor(secretString.getBytes(StandardCharsets.UTF_8));
+    }
 
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
@@ -38,7 +48,8 @@ public class JwtTokenUtil {
     }
 
     private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+        // 4. Gunakan objek secretKey untuk parsing, bukan String mentah
+        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
     }
 
     private Boolean isTokenExpired(String token) {
@@ -57,7 +68,8 @@ public class JwtTokenUtil {
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration * 1000))
-                .signWith(SignatureAlgorithm.HS512, secret)
+                // 5. Gunakan objek secretKey untuk signing
+                .signWith(SignatureAlgorithm.HS512, secretKey)
                 .compact();
     }
 

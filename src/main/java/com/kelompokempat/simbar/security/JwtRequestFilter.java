@@ -35,26 +35,32 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String jwtToken = null;
 
         if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
+            jwtToken = requestTokenHeader.substring(7);
+
             try {
                 username = jwtTokenUtil.getUsernameFromToken(jwtToken);
-                // hanya lanjut validasi jika username ada dan belum expired
-            } catch (ExpiredJwtException e) {
-                System.out.println("JWT Token has expired");
             } catch (Exception e) {
-                System.out.println("Error parsing JWT: " + e.getMessage());
+                // ==========================================================
+                // == PERUBAHAN PENTING UNTUK DEBUGGING                    ==
+                // ==========================================================
+                // Kita tidak lagi menyembunyikan error. Kita lempar kembali
+                // agar stack trace lengkapnya muncul di konsol.
+                System.err.println("!!! EXCEPTION TERJADI DI DALAM JWT FILTER !!!");
+                throw new RuntimeException("Gagal memproses JWT Token di dalam filter. Ini BUKAN error sebenarnya, tapi pembungkus untuk melihat stack trace.", e);
             }
         }
 
-
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (jwtTokenUtil.validateToken(jwtToken, username)) {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+
+            if (jwtTokenUtil.validateToken(jwtToken, userDetails.getUsername())) {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
+
         chain.doFilter(request, response);
     }
 }

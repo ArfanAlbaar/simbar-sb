@@ -12,42 +12,42 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-
 @Configuration
 public class DataSeeder {
 
     @Bean
-    CommandLineRunner seedUser(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) { // Add RoleRepository
+    CommandLineRunner seedUser(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         return args -> {
+            // --- Membuat Role ADMIN ---
+            Role adminRole = roleRepository.findByName("ADMIN").orElseGet(() -> {
+                Role newRole = new Role();
+                newRole.setName("ADMIN");
+                System.out.println("✅ Role 'ADMIN' created.");
+                return roleRepository.save(newRole);
+            });
+
+            // --- TAMBAHKAN INI: Membuat Role USER ---
+            Role userRole = roleRepository.findByName("USER").orElseGet(() -> {
+                Role newRole = new Role();
+                newRole.setName("USER");
+                System.out.println("✅ Role 'USER' created.");
+                return roleRepository.save(newRole);
+            });
+
+            // --- Membuat User Admin ---
             String defaultUsername = "admin";
-            String defaultPassword = "admin123";
-            String adminRoleName = "ADMIN";
-
-            // Ensure the admin role exists
-            Optional<Role> adminRoleOptional = roleRepository.findByName(adminRoleName);
-            Role adminRole;
-            if (adminRoleOptional.isEmpty()) {
-                adminRole = new Role();
-                adminRole.setName(adminRoleName);
-                adminRole = roleRepository.save(adminRole);
-                System.out.println("✅ Role '" + adminRoleName + "' created.");
-            } else {
-                adminRole = adminRoleOptional.get();
-                System.out.println("ℹ️ Role '" + adminRoleName + "' already exists.");
-            }
-
-            // Check if admin user exists
             if (userRepository.findByUsername(defaultUsername).isEmpty()) {
                 User admin = new User();
                 admin.setUsername(defaultUsername);
-                admin.setPassword(passwordEncoder.encode(defaultPassword));
+                admin.setPassword(passwordEncoder.encode("admin123"));
 
                 Set<Role> roles = new HashSet<>();
                 roles.add(adminRole);
+                roles.add(userRole); // <<< TAMBAHKAN role 'USER' ke set
                 admin.setRoles(roles);
 
                 userRepository.save(admin);
-                System.out.println("✅ Default admin user created: " + defaultUsername + " with role " + adminRoleName);
+                System.out.println("✅ Default admin user created with roles: ADMIN, USER");
             } else {
                 System.out.println("ℹ️ Default admin user already exists.");
             }
