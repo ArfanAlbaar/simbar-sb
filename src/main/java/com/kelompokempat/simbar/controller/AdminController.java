@@ -1,7 +1,5 @@
 package com.kelompokempat.simbar.controller;
 
-import io.github.resilience4j.ratelimiter.RequestNotPermitted;
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import com.kelompokempat.simbar.dto.ApiResponse;
 import com.kelompokempat.simbar.dto.UserDTO;
 import com.kelompokempat.simbar.service.UserService;
@@ -19,7 +17,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('ADMIN')")
 @CrossOrigin(origins = "*", maxAge = 3600)
-@RateLimiter(name = "controllerWideLimiter")
 public class AdminController {
 
     private final UserService userService;
@@ -107,15 +104,5 @@ public class AdminController {
         }
     }
 
-    // Method ini akan menangani semua RequestNotPermitted exception
-    // yang terjadi di dalam controller ini karena rate limiting.
-    @ExceptionHandler(RequestNotPermitted.class)
-    public ResponseEntity<String> handleRequestNotPermitted(RequestNotPermitted ex) {
-        System.err.println("Rate limit exceeded for controller: " + ex.getMessage());
-        // Anda bisa menambahkan header Retry-After di sini jika mau
-        // response.getHeaders().add("Retry-After", "1"); // contoh 1 detik
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                .body("Too many requests for this service. Please try again later.");
-    }
 
 }

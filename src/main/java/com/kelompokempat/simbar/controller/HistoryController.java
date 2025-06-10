@@ -6,8 +6,7 @@ import com.kelompokempat.simbar.dto.ItemSummaryDTO;
 import com.kelompokempat.simbar.entity.History;
 import com.kelompokempat.simbar.entity.TypeEnum;
 import com.kelompokempat.simbar.service.HistoryService;
-import io.github.resilience4j.ratelimiter.RequestNotPermitted;
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Page;
@@ -25,7 +24,6 @@ import java.time.LocalDate;
 @RequestMapping("/api/histories")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-@RateLimiter(name = "controllerWideLimiter")
 public class HistoryController {
 
     private final HistoryService historyService;
@@ -210,12 +208,5 @@ public class HistoryController {
         }
     }
 
-    @ExceptionHandler(RequestNotPermitted.class)
-    public ResponseEntity<String> handleRequestNotPermitted(RequestNotPermitted ex) {
-        System.err.println("Rate limit exceeded for controller: " + ex.getMessage());
-        // Anda bisa menambahkan header Retry-After di sini jika mau
-        // response.getHeaders().add("Retry-After", "1"); // contoh 1 detik
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                .body("Too many requests for this service. Please try again later.");
-    }
+
 }

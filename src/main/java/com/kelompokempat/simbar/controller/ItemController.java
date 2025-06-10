@@ -7,8 +7,7 @@ import com.kelompokempat.simbar.entity.History; // Added
 import com.kelompokempat.simbar.entity.Item;
 import com.kelompokempat.simbar.repository.ItemRepository;
 import com.kelompokempat.simbar.service.HistoryService; // Added
-import io.github.resilience4j.ratelimiter.RequestNotPermitted;
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor; // Added
 import org.springframework.data.crossstore.ChangeSetPersister; // Added
@@ -24,8 +23,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/items")
 @CrossOrigin(origins = "*", maxAge = 3600)
-@RequiredArgsConstructor // Added for constructor injection
-@RateLimiter(name = "controllerWideLimiter")
+@RequiredArgsConstructor
 public class ItemController {
 
     private final ItemRepository itemRepository; // Made final
@@ -191,12 +189,5 @@ public class ItemController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(new ApiResponse<>(true, "Low stock items retrieved successfully", itemDtos));
     }
-    @ExceptionHandler(RequestNotPermitted.class)
-    public ResponseEntity<String> handleRequestNotPermitted(RequestNotPermitted ex) {
-        System.err.println("Rate limit exceeded for controller: " + ex.getMessage());
-        // Anda bisa menambahkan header Retry-After di sini jika mau
-        // response.getHeaders().add("Retry-After", "1"); // contoh 1 detik
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                .body("Too many requests for this service. Please try again later.");
-    }
+
 }

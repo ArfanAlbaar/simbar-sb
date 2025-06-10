@@ -1,6 +1,7 @@
 package com.kelompokempat.simbar.security;
 
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -15,8 +16,13 @@ import java.util.Map;
 
 @Component
 public class JwtTokenUtil {
-    private final SecretKey secret = Keys.secretKeyFor(SignatureAlgorithm.HS512); // generates a secure 512-bit key
-    private int jwtExpiration = 86400; // 24 hours
+    // Inject dari application.properties
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @Value("${jwt.expiration}")
+    private int jwtExpiration;
+
 
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);

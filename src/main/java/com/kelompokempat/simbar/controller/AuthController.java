@@ -6,8 +6,6 @@ import com.kelompokempat.simbar.dto.LoginRequest;
 import com.kelompokempat.simbar.entity.User;
 import com.kelompokempat.simbar.repository.UserRepository;
 import com.kelompokempat.simbar.security.JwtTokenUtil;
-import io.github.resilience4j.ratelimiter.RequestNotPermitted;
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,7 +23,6 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*", maxAge = 3600)
-@RateLimiter(name = "controllerWideLimiter")
 public class AuthController {
 
     @Autowired
@@ -103,12 +100,5 @@ public class AuthController {
                     .body(new ApiResponse(false, "Invalid credentials", "Incorrect username or password"));
         }
     }
-    @ExceptionHandler(RequestNotPermitted.class)
-    public ResponseEntity<String> handleRequestNotPermitted(RequestNotPermitted ex) {
-        System.err.println("Rate limit exceeded for controller: " + ex.getMessage());
-        // Anda bisa menambahkan header Retry-After di sini jika mau
-        // response.getHeaders().add("Retry-After", "1"); // contoh 1 detik
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                .body("Too many requests for this service. Please try again later.");
-    }
+
 }
