@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  mpi_api_con:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mpi_api_con
+    image: mpi_api_img
+    ports:
+      - "8080:80"
+    restart: always
