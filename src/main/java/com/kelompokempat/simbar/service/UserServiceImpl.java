@@ -82,9 +82,11 @@ public class UserServiceImpl implements UserService {
         Set<Role> assignedRoles = new HashSet<>();
         if (userDto.getRoles() != null && !userDto.getRoles().isEmpty()) {
             for (String roleName : userDto.getRoles()) {
-                Role role = roleRepository.findByName(roleName.toUpperCase()) // Cari berdasarkan nama (case-insensitive)
-                        .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
-                assignedRoles.add(role);
+                if (roleName != null && !roleName.trim().isEmpty()) {
+                    Role role = roleRepository.findByName(roleName.toUpperCase())
+                            .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
+                    assignedRoles.add(role);
+                }
             }
         } else {
             // Jika tidak ada peran yang dikirim, berikan peran default 'USER'
@@ -119,9 +121,11 @@ public class UserServiceImpl implements UserService {
             Set<Role> assignedRoles = new HashSet<>();
             if (!userDto.getRoles().isEmpty()) {
                 for (String roleName : userDto.getRoles()) {
-                    Role role = roleRepository.findByName(roleName.toUpperCase())
-                            .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
-                    assignedRoles.add(role);
+                    if (roleName != null && !roleName.trim().isEmpty()) {
+                        Role role = roleRepository.findByName(roleName.toUpperCase())
+                                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
+                        assignedRoles.add(role);
+                    }
                 }
             }
             // Jika userDto.getRoles() adalah array kosong, maka userToUpdate.setRoles(assignedRoles) akan menghapus semua peran.
